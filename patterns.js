@@ -160,13 +160,16 @@ module.exports = options => {
       transform: (tokens, i, j) => {
         const token = tokens[i].children[j];
         const content = token.content;
-        const attrs = utils.getAttrs(content, 0, options);
-        let ii = i - 2;
-        while (tokens[ii - 1] &&
-          tokens[ii - 1].type !== 'ordered_list_open' &&
-          tokens[ii - 1].type !== 'bullet_list_open') { ii--; }
-        utils.addAttrs(attrs, tokens[ii - 1]);
-        tokens[i].children = tokens[i].children.slice(0, -2);
+        const endChar = content.indexOf(options.rightDelimiter);
+        if (endChar === content.length - options.rightDelimiter.length) {
+          const attrs = utils.getAttrs(content, 0, options);
+          let ii = i - 2;
+          while (tokens[ii - 1] &&
+            tokens[ii - 1].type !== 'ordered_list_open' &&
+            tokens[ii - 1].type !== 'bullet_list_open') { ii--; }
+          utils.addAttrs(attrs, tokens[ii - 1]);
+          tokens[i].children = tokens[i].children.slice(0, -2);
+        }
       }
     }, {
       /**
@@ -260,13 +263,18 @@ module.exports = options => {
       ],
       transform: (tokens, i, j) => {
         const token = tokens[i].children[j];
-        const attrs = utils.getAttrs(token.content, 0, options);
-        // find last closing tag
-        let ii = i + 1;
-        while (tokens[ii + 1] && tokens[ii + 1].nesting === -1) { ii++; }
-        const openingToken = utils.getMatchingOpeningToken(tokens, ii);
-        utils.addAttrs(attrs, openingToken);
-        tokens[i].children = tokens[i].children.slice(0, -2);
+        const content = token.content;
+        const endChar = content.indexOf(options.rightDelimiter);
+        if (endChar === content.length - options.rightDelimiter.length) {
+
+          const attrs = utils.getAttrs(token.content, 0, options);
+          // find last closing tag
+          let ii = i + 1;
+          while (tokens[ii + 1] && tokens[ii + 1].nesting === -1) { ii++; }
+          const openingToken = utils.getMatchingOpeningToken(tokens, ii);
+          utils.addAttrs(attrs, openingToken);
+          tokens[i].children = tokens[i].children.slice(0, -2);
+        }
       }
     }, {
       /**
